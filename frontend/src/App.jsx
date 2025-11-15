@@ -1,11 +1,15 @@
-function App() {
+import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "./context/ThemeContext";
+
+export default function App({ children }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold text-indigo-600">
-        Tailwind + Vite = ✅ Working!
-      </h1>
-    </div>
-  )
+    <ThemeProvider>
+      <Toaster position="top-right" />
+
+      {/* Children will be the Router Layout (RootLayout) */}
+      {children}
+    </ThemeProvider>
+  );
 }
 
-export default App
+
