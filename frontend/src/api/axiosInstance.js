@@ -30,12 +30,13 @@ API.interceptors.response.use(
     // ❌ Before: toast.error(errorMsg);
     // ✅ After: Prevent duplicates with toastId
 
-    toast.error(errorMsg, { id: "api-error" });
+   toast.error(errorMsg, { id: "global-error" });
+
 
     // Auto-logout if token expired
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/auth/login";
+      
     }
 
     return Promise.reject(error);

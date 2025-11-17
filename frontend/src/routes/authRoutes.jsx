@@ -1,6 +1,6 @@
 import AuthLayout from "../layouts/AuthLayout";
-import Login from "../pages/auth/Login.jsx";
-import Signup from "../pages/auth/Signup.jsx";
+import Login from "../pages/auth/Login";
+import Signup from "../pages/auth/Signup";
 
 const authRoutes = [
   {

@@ -14,9 +14,8 @@ export default function Signup() {
     confirmPassword: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -40,10 +39,26 @@ export default function Signup() {
         password: form.password,
       });
 
+      console.log("SIGNUP RESPONSE:", res);
+
+      if (!res.success) {
+        toast.error(res.message || "Signup failed", { id: "signup" });
+        return;
+      }
+
+      // ⭐ AUTO-LOGIN: save token instantly
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+      }
+
       toast.success("Signup successful 🎉", { id: "signup" });
-      navigate("/auth/login");
+
+      // ⭐ Redirect to Profile Setup Page
+      navigate("/profile-setup");
+
     } catch (error) {
-      // axios interceptor already shows error toast (with duplicate protection)
+      console.log("SIGNUP ERROR:", error);
+      // axios interceptor already shows error toast
     } finally {
       setLoading(false);
     }
@@ -67,7 +82,7 @@ export default function Signup() {
           placeholder="John Doe"
           value={form.name}
           onChange={handleChange}
-          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300 bg-[#eaf1ff] focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300 bg-[#eaf1ff]"
         />
 
         {/* Email */}
@@ -78,7 +93,7 @@ export default function Signup() {
           placeholder="you@example.com"
           value={form.email}
           onChange={handleChange}
-          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300"
         />
 
         {/* Password */}
@@ -89,7 +104,7 @@ export default function Signup() {
           placeholder="••••••••"
           value={form.password}
           onChange={handleChange}
-          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300"
         />
 
         {/* Confirm Password */}
@@ -100,10 +115,10 @@ export default function Signup() {
           placeholder="••••••••"
           value={form.confirmPassword}
           onChange={handleChange}
-          className="w-full p-3 mt-1 mb-6 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 mt-1 mb-6 rounded-xl border border-gray-300"
         />
 
-        {/* Button */}
+        {/* Sign Up Button */}
         <button
           type="submit"
           disabled={loading}
@@ -116,7 +131,7 @@ export default function Signup() {
           Already have an account?{" "}
           <span
             onClick={() => navigate("/auth/login")}
-            className="text-blue-600 font-semibold cursor-pointer hover:underline"
+            className="text-blue-600 cursor-pointer font-semibold hover:underline"
           >
             Login
           </span>
