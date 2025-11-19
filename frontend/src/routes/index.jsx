@@ -6,8 +6,9 @@ import LandingPage from "../pages/LandingPage";
 import authRoutes from "./authRoutes";
 import dashboardRoutes from "./dashboardRoutes";
 
-// Profile setup page
+// Pages
 import ProfileSetup from "../pages/profile/ProfileSetup";
+import ResumeUpload from "../pages/resume/ResumeUpload";   // <-- ADD THIS
 
 const router = createBrowserRouter([
   {
@@ -16,11 +17,12 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> },
 
-      ...authRoutes,        // /auth/login, /auth/signup
-      ...dashboardRoutes,   // /dashboard/*
+      ...authRoutes,
+      ...dashboardRoutes,
 
-      // 🔥 ADD THIS
       { path: "profile-setup", element: <ProfileSetup /> },
+
+      { path: "resume-upload", element: <ResumeUpload /> },
     ],
   },
 ]);

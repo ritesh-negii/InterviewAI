@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { signupApi } from "../../api/authApi";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { register } = useAuth();  // ⭐ USE CONTEXT REGISTER
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -32,36 +33,17 @@ export default function Signup() {
 
     setLoading(true);
 
-    try {
-      const res = await signupApi({
+    // ⭐⭐ MAIN FIX – USE AuthContext.register()
+    const result = await register(
+      {
         name: form.name,
         email: form.email,
         password: form.password,
-      });
+      },
+      navigate // pass navigate to context
+    );
 
-      console.log("SIGNUP RESPONSE:", res);
-
-      if (!res.success) {
-        toast.error(res.message || "Signup failed", { id: "signup" });
-        return;
-      }
-
-      // ⭐ AUTO-LOGIN: save token instantly
-      if (res.token) {
-        localStorage.setItem("token", res.token);
-      }
-
-      toast.success("Signup successful 🎉", { id: "signup" });
-
-      // ⭐ Redirect to Profile Setup Page
-      navigate("/profile-setup");
-
-    } catch (error) {
-      console.log("SIGNUP ERROR:", error);
-      // axios interceptor already shows error toast
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   return (
@@ -74,51 +56,42 @@ export default function Signup() {
           Create Your Account
         </h1>
 
-        {/* Full Name */}
         <label className="text-gray-700 font-medium">Full Name</label>
         <input
           type="text"
           name="name"
-          placeholder="John Doe"
           value={form.name}
           onChange={handleChange}
           className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300 bg-[#eaf1ff]"
         />
 
-        {/* Email */}
         <label className="text-gray-700 font-medium">Email</label>
         <input
           type="email"
           name="email"
-          placeholder="you@example.com"
           value={form.email}
           onChange={handleChange}
           className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300"
         />
 
-        {/* Password */}
         <label className="text-gray-700 font-medium">Password</label>
         <input
           type="password"
           name="password"
-          placeholder="••••••••"
           value={form.password}
           onChange={handleChange}
           className="w-full p-3 mt-1 mb-4 rounded-xl border border-gray-300"
         />
 
-        {/* Confirm Password */}
         <label className="text-gray-700 font-medium">Confirm Password</label>
         <input
           type="password"
           name="confirmPassword"
-          placeholder="••••••••"
           value={form.confirmPassword}
           onChange={handleChange}
           className="w-full p-3 mt-1 mb-6 rounded-xl border border-gray-300"
         />
 
-        {/* Sign Up Button */}
         <button
           type="submit"
           disabled={loading}
@@ -140,4 +113,5 @@ export default function Signup() {
     </div>
   );
 }
+
 

@@ -57,7 +57,7 @@ export default function ProfileSetup() {
     try {
       await updateProfileApi(form);
       toast.success("Profile completed! 🎉");
-      navigate("/dashboard/resume"); // Next: Upload resume
+      navigate("/resume-upload"); // Next: Upload resume
     } catch (error) {
       toast.error(error.message || "Failed to save profile");
     } finally {

@@ -7,6 +7,8 @@ import { Server } from "socket.io";
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
+import resumeRoutes from "./src/routes/resumeRoutes.js";
+
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +50,9 @@ connectDB();
 // 🔗 ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+
+
+app.use("/api/resume", resumeRoutes);
 
 
 // Test route

@@ -6,6 +6,8 @@ import ProtectedRoute from "../utils/ProtectedRoute";
 
 // Pages
 import DashboardHome from "../pages/dashboard/Home";
+
+
 //import ProfilePage from "../pages/dashboard/Profile";
 //import ResumePage from "../pages/dashboard/Resume";
 //import InterviewSetup from "../pages/dashboard/InterviewSetup";
@@ -22,6 +24,8 @@ const dashboardRoutes = [
 
     children: [
       { path: "", element: <DashboardHome /> },               // DEFAULT HOME
+    
+
    //   { path: "profile", element: <ProfilePage /> },
     //  { path: "resume", element: <ResumePage /> },
      // { path: "interview", element: <InterviewSetup /> },
