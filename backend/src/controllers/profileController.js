@@ -2,12 +2,12 @@ import User from "../models/user.js";
 
 export const updateProfile = async (req, res) => {
   try {
-    const { college, year, targetRole, experience } = req.body;
+    const { college, degree, year, targetRole, experience } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       {
-        profile: { college, year, targetRole, experience },
+        profile: { college, degree, year, targetRole, experience },
         profileCompleted: true,
       },
       { new: true }

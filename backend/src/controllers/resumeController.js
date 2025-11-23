@@ -48,20 +48,49 @@ export const uploadResume = async (req, res) => {
     console.log("🤖 Sending resume to Gemini AI...");
     const aiData = await analyzeResumeWithGemini(text);
 
-    // Archive old pending resumes (optional but professional)
-    await Resume.updateMany(
-      { userId: req.user._id, status: "pending" },
-      { status: "archived" }
-    );
-
-    const resume = await Resume.create({
-      userId: req.user._id,
-      originalText: text.trim(),
-      parsedData: aiData,
-      status: "pending"
+    // ✅ Get user profile data to merge with AI extracted data
+    const user = await User.findById(req.user._id);
+    
+    // ✅ Merge profile college data if AI didn't extract valid education
+    const hasValidEducation = aiData.education?.some(edu => {
+      const lower = edu.institution?.toLowerCase() || '';
+      return lower && !['abc', 'xyz', 'example'].some(p => lower.includes(p));
     });
 
-    const user = await User.findById(req.user._id);
+    // If no valid education from AI and user has profile college, add it
+    if (!hasValidEducation && user.profile?.college) {
+      aiData.education = [{
+        degree: user.profile.degree || "Pursuing Degree",
+        institution: user.profile.college,
+        year: user.profile.year || "Not specified"
+      }];
+    }
+    
+    // Also add target role and experience to the data if not present
+    if (!aiData.targetRole && user.profile?.targetRole) {
+      aiData.targetRole = user.profile.targetRole;
+    }
+    if (!aiData.experienceLevel && user.profile?.experience) {
+      aiData.experienceLevel = user.profile.experience;
+    }
+
+    // ✅ FIXED: Update existing resume or create new one (prevents duplicates)
+    const resume = await Resume.findOneAndUpdate(
+      { userId: req.user._id }, // Find by userId
+      {
+        originalText: text.trim(),
+        parsedData: aiData,
+        status: "pending",
+        updatedAt: new Date()
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create if doesn't exist
+        runValidators: true
+      }
+    );
+
+    // Update user's resumeUploaded status (already have user from above)
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -71,6 +100,8 @@ export const uploadResume = async (req, res) => {
 
     user.resumeUploaded = true;
     await user.save();
+
+    console.log("✅ Resume saved/updated successfully");
 
     return res.status(200).json({
       success: true,
@@ -83,7 +114,7 @@ export const uploadResume = async (req, res) => {
     console.error("🔥 Resume AI Error:", error);
     return res.status(500).json({
       success: false,
-      message: "AI Resume analysis failed"
+      message: error.message || "AI Resume analysis failed"
     });
   }
 };
@@ -95,8 +126,11 @@ export const uploadResume = async (req, res) => {
 ========================================= */
 export const getMyResume = async (req, res) => {
   try {
-    const resume = await Resume.findOne({ userId: req.user._id })
-                              .sort({ createdAt: -1 });
+    // ✅ FIXED: No need to sort, since we only have one resume per user now
+    const resume = await Resume.findOne({ 
+      userId: req.user._id,
+      status: { $in: ["pending", "confirmed"] } // Don't fetch archived
+    });
 
     if (!resume) {
       return res.status(404).json({
@@ -128,18 +162,27 @@ export const confirmResume = async (req, res) => {
   try {
     const { resumeId } = req.params;
 
-    const resume = await Resume.findByIdAndUpdate(
-      resumeId,
-      { status: "confirmed" },
+    // ✅ FIXED: Verify the resume belongs to the logged-in user
+    const resume = await Resume.findOneAndUpdate(
+      { 
+        _id: resumeId,
+        userId: req.user._id // Security: ensure user owns this resume
+      },
+      { 
+        status: "confirmed",
+        updatedAt: new Date()
+      },
       { new: true }
     );
 
     if (!resume) {
       return res.status(404).json({
         success: false,
-        message: "Resume not found"
+        message: "Resume not found or access denied"
       });
     }
+
+    console.log("✅ Resume confirmed:", resumeId);
 
     return res.status(200).json({
       success: true,
@@ -152,6 +195,45 @@ export const confirmResume = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to confirm resume"
+    });
+  }
+};
+
+
+/* =========================================
+   DELETE - Delete Resume (Optional)
+   Route: /api/resume/delete
+========================================= */
+export const deleteResume = async (req, res) => {
+  try {
+    const resume = await Resume.findOneAndDelete({ 
+      userId: req.user._id 
+    });
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "No resume found to delete"
+      });
+    }
+
+    // Update user's resumeUploaded status
+    await User.findByIdAndUpdate(req.user._id, { 
+      resumeUploaded: false 
+    });
+
+    console.log("✅ Resume deleted for user:", req.user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("DELETE RESUME ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete resume"
     });
   }
 };

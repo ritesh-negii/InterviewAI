@@ -11,7 +11,8 @@ import {
   Briefcase, 
   Calendar,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  BookOpen
 } from "lucide-react";
 
 export default function ProfileSetup() {
@@ -22,6 +23,7 @@ export default function ProfileSetup() {
 
   const [form, setForm] = useState({
     college: "",
+    degree: "",
     year: "",
     targetRole: "",
     experience: "Fresher",
@@ -36,11 +38,15 @@ export default function ProfileSetup() {
       toast.error("Please enter your college name");
       return;
     }
-    if (step === 2 && !form.year) {
+    if (step === 2 && !form.degree) {
+      toast.error("Please select your degree");
+      return;
+    }
+    if (step === 3 && !form.year) {
       toast.error("Please select your year");
       return;
     }
-    if (step === 3 && !form.targetRole) {
+    if (step === 4 && !form.targetRole) {
       toast.error("Please select your target role");
       return;
     }
@@ -57,7 +63,7 @@ export default function ProfileSetup() {
     try {
       await updateProfileApi(form);
       toast.success("Profile completed! 🎉");
-      navigate("/resume-upload"); // Next: Upload resume
+      navigate("/resume-upload");
     } catch (error) {
       toast.error(error.message || "Failed to save profile");
     } finally {
@@ -65,8 +71,8 @@ export default function ProfileSetup() {
     }
   };
 
-  // Progress calculation
-  const progress = (step / 4) * 100;
+  // Progress calculation (now 5 steps)
+  const progress = (step / 5) * 100;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 relative overflow-hidden">
@@ -82,7 +88,7 @@ export default function ProfileSetup() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-4">
             <span className="text-2xl">🎯</span>
-            <span className="text-sm font-semibold text-blue-700">Step {step} of 4</span>
+            <span className="text-sm font-semibold text-blue-700">Step {step} of 5</span>
           </div>
           
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
@@ -96,7 +102,7 @@ export default function ProfileSetup() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div 
                 key={i} 
                 className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all ${
@@ -158,8 +164,74 @@ export default function ProfileSetup() {
             </div>
           )}
 
-          {/* STEP 2: Year */}
+          {/* STEP 2: Degree */}
           {step === 2 && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-indigo-100 rounded-xl">
+                  <BookOpen className="text-indigo-600" size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Degree</h2>
+                  <p className="text-gray-600">What degree are you pursuing?</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  "B.Tech",
+                  "B.E.",
+                  "B.Sc",
+                  "BCA",
+                  "M.Tech",
+                  "MCA",
+                  "MBA",
+                  "Other"
+                ].map((deg) => (
+                  <button
+                    key={deg}
+                    onClick={() => setForm({ ...form, degree: deg })}
+                    className={`p-6 rounded-xl border-2 font-semibold text-lg transition-all ${
+                      form.degree === deg
+                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 scale-105 shadow-lg'
+                        : 'border-gray-300 hover:border-indigo-400 hover:shadow-md'
+                    }`}
+                  >
+                    {deg}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom input for "Other" */}
+              {form.degree === "Other" && (
+                <input
+                  name="degree"
+                  placeholder="Enter your degree"
+                  onChange={handleChange}
+                  className="w-full p-4 border-2 border-indigo-300 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                  autoFocus
+                />
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-4 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
+                >
+                  Continue <ArrowRight size={20} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Year */}
+          {step === 3 && (
             <div className="space-y-6 animate-fadeIn">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-purple-100 rounded-xl">
@@ -178,8 +250,8 @@ export default function ProfileSetup() {
                     onClick={() => setForm({ ...form, year: yr })}
                     className={`p-6 rounded-xl border-2 font-semibold text-lg transition-all ${
                       form.year === yr
-                        ? 'border-blue-600 bg-blue-50 text-blue-700 scale-105 shadow-lg'
-                        : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
+                        ? 'border-purple-600 bg-purple-50 text-purple-700 scale-105 shadow-lg'
+                        : 'border-gray-300 hover:border-purple-400 hover:shadow-md'
                     }`}
                   >
                     {yr}
@@ -189,7 +261,7 @@ export default function ProfileSetup() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(2)}
                   className="flex-1 py-4 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition"
                 >
                   Back
@@ -204,8 +276,8 @@ export default function ProfileSetup() {
             </div>
           )}
 
-          {/* STEP 3: Target Role */}
-          {step === 3 && (
+          {/* STEP 4: Target Role */}
+          {step === 4 && (
             <div className="space-y-6 animate-fadeIn">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-green-100 rounded-xl">
@@ -244,7 +316,7 @@ export default function ProfileSetup() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                   className="flex-1 py-4 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition"
                 >
                   Back
@@ -259,8 +331,8 @@ export default function ProfileSetup() {
             </div>
           )}
 
-          {/* STEP 4: Experience */}
-          {step === 4 && (
+          {/* STEP 5: Experience */}
+          {step === 5 && (
             <div className="space-y-6 animate-fadeIn">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-orange-100 rounded-xl">
@@ -307,7 +379,7 @@ export default function ProfileSetup() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(4)}
                   className="flex-1 py-4 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition"
                 >
                   Back

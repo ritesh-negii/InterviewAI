@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     // ⭐ Profile fields (will fill in profile setup step)
     profile: {
       college: { type: String, default: "" },
+      degree: { type: String, default: "" }, // ✅ ADD THIS LINE
       year: { type: String, default: "" },
       targetRole: { type: String, default: "" },
       experience: { type: String, default: "" },
