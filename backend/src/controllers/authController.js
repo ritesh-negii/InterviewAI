@@ -33,12 +33,9 @@ export const signup = async (req, res) => {
       profileCompleted: false,
     });
 
-    // ⭐ AUTO LOGIN — JWT TOKEN
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d", // 7 days
+    });
 
     res.status(201).json({
       success: true,
@@ -56,7 +53,6 @@ export const signup = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // ==============================
 // 🟢 LOGIN CONTROLLER
@@ -128,6 +124,3 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-

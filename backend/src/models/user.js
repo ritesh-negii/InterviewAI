@@ -34,10 +34,6 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    resumeText: {
-      type: String,
-      default: "",
-    },
     resumeUploaded: {
       type: Boolean,
       default: false,

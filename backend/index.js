@@ -1,6 +1,6 @@
 
 import express from "express";
-import dotenv from "dotenv";
+import "dotenv/config";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
@@ -10,8 +10,7 @@ import profileRoutes from "./src/routes/profileRoutes.js";
 import resumeRoutes from "./src/routes/resumeRoutes.js";
 
 
-// Load environment variables
-dotenv.config();
+
 
 const app = express();
 const server = http.createServer(app);
