@@ -1,7 +1,7 @@
 // src/pages/profile/ProfileSetup.jsx
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { updateProfileApi } from "../../api/profileApi";
 import { toast } from "react-hot-toast";
@@ -17,16 +17,22 @@ import {
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  
+  // Check if user came from dashboard
+  const fromDashboard = location.state?.from === "dashboard";
+  // Or check if profile is already completed
+  const isEditing = fromDashboard || user?.profileCompleted;
 
   const [form, setForm] = useState({
-    college: "",
-    degree: "",
-    year: "",
-    targetRole: "",
-    experience: "Fresher",
+    college: user?.profile?.college || "",
+    degree: user?.profile?.degree || "",
+    year: user?.profile?.year || "",
+    targetRole: user?.profile?.targetRole || "",
+    experience: user?.profile?.experience || "Fresher",
   });
 
   const handleChange = (e) =>
@@ -62,8 +68,15 @@ export default function ProfileSetup() {
     setLoading(true);
     try {
       await updateProfileApi(form);
-      toast.success("Profile completed! 🎉");
-      navigate("/resume-upload");
+      toast.success("Profile updated! 🎉");
+      
+      // If user already completed profile before, they're editing - go back to dashboard
+      // Otherwise, it's first-time setup - go to resume upload
+      if (isEditing) {
+        navigate("/dashboard");
+      } else {
+        navigate("/resume-upload");
+      }
     } catch (error) {
       toast.error(error.message || "Failed to save profile");
     } finally {
@@ -92,11 +105,24 @@ export default function ProfileSetup() {
           </div>
           
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
-            Welcome, {user?.name?.split(' ')[0]}! 👋
+            {isEditing ? "Edit Your Profile" : `Welcome, ${user?.name?.split(' ')[0]}! 👋`}
           </h1>
           <p className="text-gray-600 text-lg">
-            Let's set up your profile to personalize your experience
+            {isEditing 
+              ? "Update your information to keep your profile current"
+              : "Let's set up your profile to personalize your experience"
+            }
           </p>
+          
+          {/* Back to Dashboard button (only show when editing) */}
+          {isEditing && (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="mt-4 text-blue-600 hover:text-blue-800 font-semibold text-sm"
+            >
+              ← Back to Dashboard
+            </button>
+          )}
         </div>
 
         {/* Progress Bar */}

@@ -1,7 +1,7 @@
 // src/pages/resume/ResumeUpload.jsx
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Upload,
   FileText,
@@ -18,12 +18,16 @@ import { uploadResumeApi, confirmResumeApi } from "../../api/resumeApi";
 
 export default function ResumeUpload() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [editMode, setEditMode] = useState(false);
+
+  // Check if user came from dashboard (updating resume)
+  const fromDashboard = location.state?.from === "dashboard";
 
   // Drag handlers
   const handleDrag = (e) => {
@@ -98,6 +102,9 @@ export default function ResumeUpload() {
     try {
       await confirmResumeApi(parsedData.resumeId);
       toast.success("Resume confirmed ✅");
+      
+      // If came from dashboard, go back to dashboard
+      // Otherwise, first-time setup - go to dashboard
       navigate("/dashboard");
     } catch (err) {
       console.error("CONFIRM ERROR:", err);
@@ -138,12 +145,20 @@ export default function ResumeUpload() {
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Upload Your Resume
+            {fromDashboard ? "Update Your Resume" : "Upload Your Resume"}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Upload your resume and let our AI extract your skills, projects, and
             experience automatically
           </p>
+          {fromDashboard && (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="mt-4 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold text-sm"
+            >
+              ← Back to Dashboard
+            </button>
+          )}
         </div>
 
         {/* Main Content */}
@@ -416,7 +431,18 @@ export default function ResumeUpload() {
           )}
         </div>
 
-        {!parsedData && (
+        {!parsedData && fromDashboard && (
+          <div className="text-center mt-6">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium"
+            >
+              ← Cancel and go back
+            </button>
+          </div>
+        )}
+
+        {!parsedData && !fromDashboard && (
           <div className="text-center mt-6">
             <button
               onClick={() => navigate("/dashboard")}
