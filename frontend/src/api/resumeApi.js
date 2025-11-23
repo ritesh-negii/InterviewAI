@@ -36,3 +36,14 @@ export const confirmResumeApi = async (resumeId) => {
   }
 };
 
+// ==============================
+// PATCH - Update Resume Details (FIXED ✅)
+// ==============================
+export const updateResumeApi = async (resumeId, data) => {
+  try {
+    const res = await API.patch(`/api/resume/${resumeId}`, data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

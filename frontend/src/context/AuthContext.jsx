@@ -33,6 +33,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ ADD THIS: Refresh user data function
+  const refreshUser = async () => {
+    try {
+      const res = await getMeApi();
+      setUser(res.user);
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
   // 🔵 SIGNUP + AUTO LOGIN
   const register = async (userData, navigate) => {
     try {
@@ -90,6 +100,7 @@ export const AuthProvider = ({ children }) => {
         register,
         login,
         logout,
+        refreshUser, // ✅ ADD THIS
         setUser,
         setToken,
       }}
@@ -98,5 +109,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
 
 

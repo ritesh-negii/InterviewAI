@@ -3,8 +3,9 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import {
   uploadResumeMiddleware,
   uploadResume,
- confirmResume,
-  getMyResume
+  confirmResume,
+  getMyResume,
+  updateResume
 } from "../controllers/resumeController.js";
 
 const router = express.Router();
@@ -21,6 +22,16 @@ router.post(
 );
 
 // ===============================
+// Get Logged-in User Resume
+// GET /api/resume/my
+// ===============================
+router.get(
+  "/my",
+  authMiddleware,
+  getMyResume
+);
+
+// ===============================
 // Confirm Resume (after UI review)
 // PATCH /api/resume/confirm/:resumeId
 // ===============================
@@ -31,13 +42,13 @@ router.patch(
 );
 
 // ===============================
-// Get Logged-in User Resume
-// GET /api/resume/my
+// ✅ Update Resume Details
+// PATCH /api/resume/:resumeId (Changed from PUT /update)
 // ===============================
-router.get(
-  "/my",
+router.patch(
+  "/:resumeId",
   authMiddleware,
-  getMyResume
+  updateResume
 );
 
 export default router;

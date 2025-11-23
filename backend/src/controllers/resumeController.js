@@ -18,7 +18,7 @@ export const uploadResume = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "No file uploaded"
+        message: "No file uploaded",
       });
     }
 
@@ -30,8 +30,8 @@ export const uploadResume = async (req, res) => {
     });
 
     let text = "";
-    data.pages.forEach(page => {
-      page.content.forEach(item => {
+    data.pages.forEach((page) => {
+      page.content.forEach((item) => {
         text += item.str + " ";
       });
     });
@@ -41,7 +41,7 @@ export const uploadResume = async (req, res) => {
     if (!text.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Unable to extract readable text from PDF"
+        message: "Unable to extract readable text from PDF",
       });
     }
 
@@ -50,22 +50,24 @@ export const uploadResume = async (req, res) => {
 
     // ✅ Get user profile data to merge with AI extracted data
     const user = await User.findById(req.user._id);
-    
+
     // ✅ Merge profile college data if AI didn't extract valid education
-    const hasValidEducation = aiData.education?.some(edu => {
-      const lower = edu.institution?.toLowerCase() || '';
-      return lower && !['abc', 'xyz', 'example'].some(p => lower.includes(p));
+    const hasValidEducation = aiData.education?.some((edu) => {
+      const lower = edu.institution?.toLowerCase() || "";
+      return lower && !["abc", "xyz", "example"].some((p) => lower.includes(p));
     });
 
     // If no valid education from AI and user has profile college, add it
     if (!hasValidEducation && user.profile?.college) {
-      aiData.education = [{
-        degree: user.profile.degree || "Pursuing Degree",
-        institution: user.profile.college,
-        year: user.profile.year || "Not specified"
-      }];
+      aiData.education = [
+        {
+          degree: user.profile.degree || "Pursuing Degree",
+          institution: user.profile.college,
+          year: user.profile.year || "Not specified",
+        },
+      ];
     }
-    
+
     // Also add target role and experience to the data if not present
     if (!aiData.targetRole && user.profile?.targetRole) {
       aiData.targetRole = user.profile.targetRole;
@@ -81,12 +83,12 @@ export const uploadResume = async (req, res) => {
         originalText: text.trim(),
         parsedData: aiData,
         status: "pending",
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         new: true, // Return the updated document
         upsert: true, // Create if doesn't exist
-        runValidators: true
+        runValidators: true,
       }
     );
 
@@ -94,7 +96,7 @@ export const uploadResume = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -107,18 +109,16 @@ export const uploadResume = async (req, res) => {
       success: true,
       message: "Resume analyzed successfully ✅",
       resumeId: resume._id,
-      data: aiData
+      data: aiData,
     });
-
   } catch (error) {
     console.error("🔥 Resume AI Error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "AI Resume analysis failed"
+      message: error.message || "AI Resume analysis failed",
     });
   }
 };
-
 
 /* =========================================
    GET - Get Logged-in User Resume
@@ -127,32 +127,30 @@ export const uploadResume = async (req, res) => {
 export const getMyResume = async (req, res) => {
   try {
     // ✅ FIXED: No need to sort, since we only have one resume per user now
-    const resume = await Resume.findOne({ 
+    const resume = await Resume.findOne({
       userId: req.user._id,
-      status: { $in: ["pending", "confirmed"] } // Don't fetch archived
+      status: { $in: ["pending", "confirmed"] }, // Don't fetch archived
     });
 
     if (!resume) {
       return res.status(404).json({
         success: false,
-        message: "No resume found"
+        message: "No resume found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      resume
+      resume,
     });
-
   } catch (error) {
     console.error("GET RESUME ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch resume"
+      message: "Failed to fetch resume",
     });
   }
 };
-
 
 /* =========================================
    PATCH - Confirm Resume
@@ -164,13 +162,13 @@ export const confirmResume = async (req, res) => {
 
     // ✅ FIXED: Verify the resume belongs to the logged-in user
     const resume = await Resume.findOneAndUpdate(
-      { 
+      {
         _id: resumeId,
-        userId: req.user._id // Security: ensure user owns this resume
+        userId: req.user._id, // Security: ensure user owns this resume
       },
-      { 
+      {
         status: "confirmed",
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       { new: true }
     );
@@ -178,7 +176,7 @@ export const confirmResume = async (req, res) => {
     if (!resume) {
       return res.status(404).json({
         success: false,
-        message: "Resume not found or access denied"
+        message: "Resume not found or access denied",
       });
     }
 
@@ -187,53 +185,106 @@ export const confirmResume = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Resume confirmed successfully ✅",
-      resume
+      resume,
     });
-
   } catch (error) {
     console.error("CONFIRM RESUME ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to confirm resume"
+      message: "Failed to confirm resume",
     });
   }
 };
 
-
 /* =========================================
-   DELETE - Delete Resume (Optional)
+   DELETE - Delete Resume
    Route: /api/resume/delete
 ========================================= */
 export const deleteResume = async (req, res) => {
   try {
-    const resume = await Resume.findOneAndDelete({ 
-      userId: req.user._id 
+    const resume = await Resume.findOneAndDelete({
+      userId: req.user._id,
     });
 
     if (!resume) {
       return res.status(404).json({
         success: false,
-        message: "No resume found to delete"
+        message: "No resume found to delete",
       });
     }
 
     // Update user's resumeUploaded status
-    await User.findByIdAndUpdate(req.user._id, { 
-      resumeUploaded: false 
+    await User.findByIdAndUpdate(req.user._id, {
+      resumeUploaded: false,
     });
 
     console.log("✅ Resume deleted for user:", req.user._id);
 
     return res.status(200).json({
       success: true,
-      message: "Resume deleted successfully"
+      message: "Resume deleted successfully",
     });
-
   } catch (error) {
     console.error("DELETE RESUME ERROR:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to delete resume"
+      message: "Failed to delete resume",
+    });
+  }
+};
+
+/* =========================================
+   PATCH - Update Resume (Manual Edits)
+   Route: /api/resume/:resumeId
+   ✅ UPDATED THIS FUNCTION
+========================================= */
+export const updateResume = async (req, res) => {
+  try {
+    const { resumeId } = req.params;
+    const { parsedData } = req.body;
+
+    // Validate parsedData exists
+    if (!parsedData) {
+      return res.status(400).json({
+        success: false,
+        message: "Parsed data is required",
+      });
+    }
+
+    console.log("📝 Updating resume:", resumeId, "for user:", req.user._id);
+
+    // Find resume by ID AND ensure it belongs to the logged-in user (security)
+    const resume = await Resume.findOneAndUpdate(
+      {
+        _id: resumeId,
+        userId: req.user._id, // ✅ Security: Ensure user owns this resume
+      },
+      {
+        parsedData: parsedData,
+        updatedAt: new Date(),
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found or access denied",
+      });
+    }
+
+    console.log("✅ Resume updated successfully");
+
+    return res.status(200).json({
+      success: true,
+      message: "Resume updated successfully",
+      resume,
+    });
+  } catch (error) {
+    console.error("UPDATE RESUME ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update resume",
     });
   }
 };

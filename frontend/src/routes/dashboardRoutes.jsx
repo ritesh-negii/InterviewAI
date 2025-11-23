@@ -9,7 +9,7 @@ import DashboardHome from "../pages/dashboard/Home";
 
 
 //import ProfilePage from "../pages/dashboard/Profile";
-//import ResumePage from "../pages/dashboard/Resume";
+import ResumePage from "../pages/dashboard/ResumeDetail";
 //import InterviewSetup from "../pages/dashboard/InterviewSetup";
 //import AnalyticsPage from "../pages/dashboard/Analytics";
 
@@ -27,7 +27,7 @@ const dashboardRoutes = [
     
 
    //   { path: "profile", element: <ProfilePage /> },
-    //  { path: "resume", element: <ResumePage /> },
+      { path: "resume", element: <ResumePage /> },
      // { path: "interview", element: <InterviewSetup /> },
      // { path: "analytics", element: <AnalyticsPage /> },
     ],

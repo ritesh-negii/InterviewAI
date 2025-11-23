@@ -18,7 +18,7 @@ import {
 export default function ProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth(); // ✅ Add refreshUser
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -68,6 +68,12 @@ export default function ProfileSetup() {
     setLoading(true);
     try {
       await updateProfileApi(form);
+      
+      // ✅ Refresh user data in context
+      if (refreshUser) {
+        await refreshUser();
+      }
+      
       toast.success("Profile updated! 🎉");
       
       // If user already completed profile before, they're editing - go back to dashboard
