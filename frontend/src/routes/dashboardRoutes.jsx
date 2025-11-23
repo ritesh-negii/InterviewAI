@@ -8,7 +8,7 @@ import ProtectedRoute from "../utils/ProtectedRoute";
 import DashboardHome from "../pages/dashboard/Home";
 
 
-//import ProfilePage from "../pages/dashboard/Profile";
+import ProfilePage from "../pages/dashboard/Profile";
 import ResumePage from "../pages/dashboard/ResumeDetail";
 //import InterviewSetup from "../pages/dashboard/InterviewSetup";
 //import AnalyticsPage from "../pages/dashboard/Analytics";
@@ -26,7 +26,7 @@ const dashboardRoutes = [
       { path: "", element: <DashboardHome /> },               // DEFAULT HOME
     
 
-   //   { path: "profile", element: <ProfilePage /> },
+     { path: "profile", element: <ProfilePage /> },
       { path: "resume", element: <ResumePage /> },
      // { path: "interview", element: <InterviewSetup /> },
      // { path: "analytics", element: <AnalyticsPage /> },
