@@ -1,21 +1,20 @@
+// backend/index.js (or server.js)
 
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
 import resumeRoutes from "./src/routes/resumeRoutes.js";
 
-
-
-
 const app = express();
 const server = http.createServer(app);
 
-// 🔥 SOCKET.IO SETUP (for real-time interviews - Day 5+)
+// 🔥 SOCKET.IO SETUP
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -24,15 +23,46 @@ const io = new Server(server, {
   },
 });
 
+// ✅ WebSocket Authentication Middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+
+  if (!token) {
+    console.log("❌ No token provided for socket connection");
+    return next(new Error("Authentication error: No token provided"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id; // Attach user ID to socket
+    console.log("✅ Socket authenticated for user:", decoded.id);
+    next();
+  } catch (error) {
+    console.log("❌ Invalid token for socket connection");
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
+// ✅ WebSocket Connection Handler
 io.on("connection", (socket) => {
-  console.log("🔥 User connected:", socket.id);
+  console.log("🔥 User connected:", socket.id, "| User ID:", socket.userId);
+
+  // Import interview handlers
+  import("./src/sockets/interviewHandlers.js").then((module) => {
+    module.default(io, socket);
+  });
 
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
   });
+
+  // Error handler
+  socket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
 });
 
-// Make io accessible to routes (optional, for Day 5+)
+// Make io accessible to routes (optional)
 app.set("io", io);
 
 // ⚙️ MIDDLEWARE
@@ -49,10 +79,7 @@ connectDB();
 // 🔗 ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
-
-
 app.use("/api/resume", resumeRoutes);
-
 
 // Test route
 app.get("/", (req, res) => {
@@ -62,6 +89,8 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       auth: "/api/auth",
+      profile: "/api/profile",
+      resume: "/api/resume",
       health: "/api/health"
     }
   });
@@ -76,15 +105,15 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ❌ ERROR HANDLING (Must be AFTER all routes)
+// ❌ ERROR HANDLING
 // 404 handler
-
 app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`
   });
 });
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("❌ Error:", err.stack);
@@ -103,6 +132,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket server ready`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`🌐 CORS enabled for: ${process.env.CLIENT_URL || "http://localhost:5173"}`);
 });
@@ -115,3 +145,6 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
+
+// Export io for use in other files if needed
+export { io };
